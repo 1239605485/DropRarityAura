@@ -14,11 +14,10 @@
 namespace {
 constexpr const char* kTag = "DropRarityAura";
 constexpr int kDustWhiteTorch = 63;
-constexpr uint32_t kSpawnInterval = 8;
-constexpr float kRingRadiusX = 18.0f;
-constexpr float kRingRadiusY = 10.0f;
+constexpr uint32_t kSpawnInterval = 6;
+constexpr float kBeamHeight = 128.0f;
 constexpr size_t kTrackedSlots = 1024;
-constexpr int kParticlesPerPulse = 3;
+constexpr int kBeamSegments = 13;
 
 struct Vector2Value { float x; float y; };
 // XNA Color memory order from the supplied PE source: A, B, G, R.
@@ -82,12 +81,12 @@ void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_si
     ColorValue tint{255, rgb.b, rgb.g, rgb.r};
     float scale = 1.25f;
     const uint32_t pulse = count / kSpawnInterval;
-    for (int i = 0; i < kParticlesPerPulse; ++i) {
-        const float angle = static_cast<float>((pulse * 24u + static_cast<uint32_t>(i) * 120u) % 360u)
-                            * 0.01745329251994329577f;
+    for (int i = 0; i < kBeamSegments; ++i) {
+        const float segment = static_cast<float>(i) / static_cast<float>(kBeamSegments - 1);
+        const float wobble = std::sin(static_cast<float>(pulse) * 0.2f + segment * 6.2831853f) * 2.5f;
         Vector2Value particle_position{
-            center_x + std::cos(angle) * kRingRadiusX,
-            center_y + std::sin(angle) * kRingRadiusY,
+            center_x + wobble,
+            center_y + 12.0f - segment * kBeamHeight,
         };
         void* call_args[] = {
             &particle_position, &width, &height, &dust_id,
@@ -137,7 +136,7 @@ bool install_item_draw_hook() {
     std::memset(g_draw_counts, 0, sizeof(g_draw_counts));
     std::memset(g_seen_rare_item, 0, sizeof(g_seen_rare_item));
     g_dust_call_failed_logged = false;
-    if (mod_logger_write) mod_logger_write(MOD_LOG_LEVEL_INFO, kTag, "Drop rarity aura hook installed");
+    if (mod_logger_write) mod_logger_write(MOD_LOG_LEVEL_INFO, kTag, "Drop rarity light pillar hook installed");
     return true;
 }
 
