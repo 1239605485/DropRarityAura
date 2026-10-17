@@ -2,9 +2,9 @@
   "pkgId": "xinliu.droprarityaura",
   "name": "掉落物稀有度光环",
   "author": "xin liu",
-  "description": "KernelLoader 原生模组：为不同稀有度的地面掉落物添加彩色环绕光点。",
-  "version": "0.3.0",
-  "versionCode": 3,
+  "description": "KernelLoader 原生模组：为不同稀有度的地面掉落物添加彩色竖直光柱。",
+  "version": "0.4.0",
+  "versionCode": 4,
   "dependence": [],
   "support": {
     "android": { "arm64": true, "arm": false },
