@@ -22,16 +22,17 @@ jobs:
           repository: eternalfuture-e38299/TEFKernel-KernelLoader
           ref: 1316f21415ceb7d15626e9eaae1e70bc4833a913
           path: .deps/KernelLoader
+      - uses: android-actions/setup-android@v4
+        if: matrix.target == 'android-arm64'
+        with:
+          packages: ''
       - name: Install Android NDK
         if: matrix.target == 'android-arm64'
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-        run: yes | "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" --licenses >/dev/null && "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" --install "ndk;27.2.12479018"
+        run: sdkmanager --install "ndk;27.2.12479018"
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.2.12479018
-        run: bash build.sh "${{ matrix.target }}"
+        run: export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018" && bash build.sh "${{ matrix.target }}"
       - uses: actions/upload-artifact@v4
         with:
           name: DropRarityAura-${{ matrix.target }}
