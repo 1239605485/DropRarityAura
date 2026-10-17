@@ -1,0 +1,17 @@
+{
+  "pkgId": "xinliu.droprarityaura",
+  "name": "掉落物稀有度光环",
+  "author": "xin liu",
+  "description": "为不同稀有度的地面掉落物添加轻量环绕光点。",
+  "version": "0.1.0",
+  "versionCode": 1,
+  "detailedInformationURL": "",
+  "updateURL": "",
+  "dependence": [],
+  "support": {
+    "android": { "arm64": true, "arm": true },
+    "windows": { "x64": true, "x86": true },
+    "linux": { "x64": true, "x86": true },
+    "mac": { "x64": false, "arm64": false }
+  }
+}
