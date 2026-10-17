@@ -1,0 +1,39 @@
+name: Build KernelLoader mod
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [linux-x64, android-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eternalfuture-e38299/TEFKernel-KernelLoader
+          ref: 1316f21415ceb7d15626e9eaae1e70bc4833a913
+          path: .deps/KernelLoader
+      - uses: android-actions/setup-android@v3
+        if: matrix.target == 'android-arm64'
+      - name: Install Android NDK
+        if: matrix.target == 'android-arm64'
+        run: sdkmanager --install "ndk;27.2.12479018"
+      - name: Build mod
+        env:
+          KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+        run: bash DropRarityAura/build.sh "${{ matrix.target }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DropRarityAura-${{ matrix.target }}
+          path: DropRarityAura/DropRarityAura-${{ matrix.target }}.zip
+          if-no-files-found: error
