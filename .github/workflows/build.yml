@@ -31,9 +31,9 @@ jobs:
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
           ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
-        run: bash DropRarityAura/build.sh "${{ matrix.target }}"
+        run: bash build.sh "${{ matrix.target }}"
       - uses: actions/upload-artifact@v4
         with:
           name: DropRarityAura-${{ matrix.target }}
-          path: DropRarityAura/DropRarityAura-${{ matrix.target }}.zip
+          path: DropRarityAura-${{ matrix.target }}.zip
           if-no-files-found: error
