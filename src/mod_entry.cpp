@@ -13,7 +13,7 @@ void cleanup_mod(kernel_mod_handle_t*) {
 }
 
 kernel_mod_info_t* get_info() {
-    static kernel_mod_info_t info = {"xinliu.droprarityaura", 2, 1, "0.2.0"};
+    static kernel_mod_info_t info = {"xinliu.droprarityaura", 3, 1, "0.3.0"};
     return &info;
 }
 }
