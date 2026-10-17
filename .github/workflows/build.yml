@@ -22,11 +22,9 @@ jobs:
           repository: eternalfuture-e38299/TEFKernel-KernelLoader
           ref: 1316f21415ceb7d15626e9eaae1e70bc4833a913
           path: .deps/KernelLoader
-      - uses: android-actions/setup-android@v3
-        if: matrix.target == 'android-arm64'
       - name: Install Android NDK
         if: matrix.target == 'android-arm64'
-        run: sdkmanager --install "ndk;27.2.12479018"
+        run: yes | sdkmanager --licenses >/dev/null && sdkmanager --install "ndk;27.2.12479018"
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
