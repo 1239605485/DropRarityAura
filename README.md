@@ -1,25 +1,27 @@
 # 掉落物稀有度光环
 
-LuaLoader / TEFKernel 模组原型。给地面稀有物品显示与稀有度对应的彩色环绕光点，普通白色品质不显示。
+KernelLoader 原生 C++ 模组。稀有掉落物周围会出现与稀有度对应颜色的光点，普通品质不显示。
 
-## 实现方案
+## 代码分层
 
-1. 在 `Main.DrawItem(WorldItem, int)` 后置钩子里处理单个当前绘制的掉落物，不扫描整个世界物品数组。
-2. 从 `WorldItem.inner.rare` 读取稀有度，只做视觉分类，不修改物品、掉落或存档数据。
-3. 调用原版 `Dust.NewDust` 生成尘埃，并为每个稀有度设置独立 RGB 颜色；以节流方式让光点分布在椭圆轨迹附近。
-4. 代码拆分为入口/绘制回调和独立稀有度映射，后续可在这两层旁添加设置模块。
+- `src/mod_entry.cpp`：KernelLoader 模组入口和生命周期
+- `src/item_draw_hook.cpp`：挂接 `Main.DrawItem`，读取掉落物稀有度并节流生成原版尘埃
+- `src/rarity_palette.cpp`：独立稀有度 RGB 映射
+- `build.sh`：按目标平台编译并生成可导入 ZIP
 
-## 文件结构
+## 运行方式
 
-- `Info.json`、`Manifest.json`、`luamod.json`：TEFKernel 与 LuaLoader 模组声明
-- `Resources/lib/main.lua`：绘制钩子、节流、结构体构造与清理
-- `Resources/lib/rarity_palette.lua`：每个稀有度独立 RGB 映射
-- `build.sh`：生成 TEFKernel 导入包
+模组清单声明 `parentLoader: eternal.future.kernelloader`，二进制放在 `lib/libdrop_rarity_aura.<platform>.<arch>.so`。
 
-## 原型边界
+依赖 KernelLoader 头文件与目标平台工具链：
 
-Lua 语法、配置 JSON 和包压缩结构已验证。反射对受保护方法的访问、IL2CPP 下 Vector2/Color 参数装箱，以及游戏内尘埃的视觉表现需要在目标设备实测；此环境没有 Terraria 运行实例，因此尚未宣称游戏内效果已通过验证。
+```sh
+KERNELLOADER_DIR=/path/to/TEFKernel-KernelLoader ./build.sh linux-x64
+KERNELLOADER_DIR=/path/to/TEFKernel-KernelLoader ANDROID_NDK_HOME=/path/to/ndk ./build.sh android-arm64
+```
 
-## 导入
+产物位于 `dist/`。压缩包内包含 `Info.json`、`Manifest.json`、`mod.json` 和平台动态库，按 KernelLoader 的 Mod 目录结构导入。
 
-在仓库根目录运行 `sh build.sh` 生成 `droprarityaura.tefpkg`，再将它导入 TEFKernel；也可以将目录直接作为 LuaLoader Mod 内容导入。
+## 当前验证范围
+
+Linux x64 动态库已在本地编译。Android arm64 需 Android NDK。代码依据提供的 Terraria 1.4.5.8 反编译源码和 KernelLoader 1.2 API 编写；`Main.DrawItem` 反射查找、游戏内尘埃颜色和 Android IL2CPP hook 行为仍需进游戏实测。
