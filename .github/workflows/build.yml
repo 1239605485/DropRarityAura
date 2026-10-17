@@ -24,11 +24,13 @@ jobs:
           path: .deps/KernelLoader
       - name: Install Android NDK
         if: matrix.target == 'android-arm64'
-        run: yes | sdkmanager --licenses >/dev/null && sdkmanager --install "ndk;27.2.12479018"
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: yes | "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" --licenses >/dev/null && "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" --install "ndk;27.2.12479018"
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
-          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.2.12479018
         run: bash build.sh "${{ matrix.target }}"
       - uses: actions/upload-artifact@v4
         with:
