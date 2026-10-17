@@ -14,6 +14,7 @@ LuaLoader / TEFKernel 模组原型。给地面稀有物品显示与稀有度对�
 - `Info.json`、`Manifest.json`、`luamod.json`：TEFKernel 与 LuaLoader 模组声明
 - `Resources/lib/main.lua`：绘制钩子、节流、结构体构造与清理
 - `Resources/lib/rarity_palette.lua`：每个稀有度独立 RGB 映射
+- `build.sh`：生成 TEFKernel 导入包
 
 ## 原型边界
 
@@ -21,4 +22,4 @@ Lua 语法、配置 JSON 和包压缩结构已验证。反射对受保护方法�
 
 ## 导入
 
-导入仓库内生成的 `droprarityaura.tefpkg`，或将目录作为 LuaLoader Mod 内容导入 TEFKernel。
+在仓库根目录运行 `sh build.sh` 生成 `droprarityaura.tefpkg`，再将它导入 TEFKernel；也可以将目录直接作为 LuaLoader Mod 内容导入。
