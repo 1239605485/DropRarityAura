@@ -1,6 +1,6 @@
 # 掉落物稀有度光柱
 
-适用于 Terraria Android ARM64 1.4.5.8 和 KernelLoader 的原生 C++ 模组。正式版 1.0。普通物品显示白色光晕与地环，稀有度升高时增加短光柱、星芒、上升光环和星点，保留原版物品显示。
+适用于 KernelLoader 的原生 C++ 模组。编译目标为 Android ARM64、Windows x86/x64、Linux x86/x64。Android 针对 Terraria 1.4.5.8，桌面端使用托管接口适配。正式版 1.0。普通物品显示白色光晕与地环，稀有度升高时增加短光柱、星芒、上升光环和星点，保留原版物品显示。
 
 ## 代码分层
 
@@ -21,6 +21,10 @@
 KERNELLOADER_DIR=/path/to/KernelLoader ANDROID_NDK_HOME=/path/to/ndk bash build.sh android-arm64
 ```
 
-ZIP 根目录包含 Info.json、Manifest.json、mod.json，原生库必须位于 `Resources/lib/libdrop_rarity_aura.android.arm64.so`。安装器把 Resources 的内容复制到私有目录，加载器再从私有目录的 lib/ 读取库。
+ZIP 根目录包含 Info.json、Manifest.json、mod.json，原生库位于 `Resources/lib/`，例如安卓的 `libdrop_rarity_aura.android.arm64.so`、Windows 的 `drop_rarity_aura.windows.x64.dll`、Linux 的 `libdrop_rarity_aura.linux.x86.so`。安装器把 Resources 的内容复制到私有目录，加载器再从私有目录的 lib/ 读取库。
 
 构建使用严格链接检查，不允许未定义的 PatchLib 指针变量；Android C++ 运行库静态链接。进游戏后的可视效果仍需设备验证，编译成功不代表已经验证游戏绘制。
+
+可将构建参数换为 `windows-x86`、`windows-x64`、`linux-x86` 或 `linux-x64`。Windows 使用 MinGW-w64 POSIX 编译器，Linux 32 位需要 g++ multilib。桌面端通过独立适配层读取托管句柄、绘制 RGBA 颜色并转换纹理行方向；Android 继续使用原生 ARM64 接口。桌面端需要对应架构的 KernelLoader，产物通过编译检查后仍需实际游戏测试。
+
+自动构建还会合并生成 `DropRarityAura-all-platforms.zip`，内含五个架构的原生库，共用同一套效果纹理，KernelLoader 按系统与架构自动选库。

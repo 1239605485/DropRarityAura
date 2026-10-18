@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [android-arm64]
+        target: [android-arm64, windows-x86, windows-x64, linux-x86, linux-x64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -29,6 +29,9 @@ jobs:
       - name: Install Android NDK
         if: matrix.target == 'android-arm64'
         run: sdkmanager --install "ndk;27.2.12479018"
+      - name: Install desktop compilers
+        if: matrix.target != 'android-arm64'
+        run: sudo apt-get update && sudo apt-get install -y g++-multilib g++-mingw-w64-i686-posix g++-mingw-w64-x86-64-posix
       - name: Check original item rendering and rarity tiers
         run: |
           g++ -std=c++17 -D__ANDROID__ -D__aarch64__ -I.deps/KernelLoader/includes -I.deps/KernelLoader/mod-api tests/item_draw_hook_test.cpp src/kernel_api.cpp src/rarity_palette.cpp -o /tmp/item-hook-test
@@ -38,6 +41,8 @@ jobs:
           python3 scripts/generate_effects.py /tmp/effect-resources/effects
           g++ -std=c++17 -D__ANDROID__ -D__aarch64__ -I.deps/KernelLoader/includes -I.deps/KernelLoader/mod-api tests/texture_lifetime_test.cpp src/kernel_api.cpp src/loot_style.cpp src/rarity_profile.cpp -o /tmp/texture-lifetime-test
           /tmp/texture-lifetime-test /tmp/effect-resources
+          g++ -std=c++17 -I.deps/KernelLoader/includes -I.deps/KernelLoader/mod-api tests/desktop_renderer_test.cpp src/kernel_api.cpp src/loot_style.cpp src/rarity_profile.cpp -o /tmp/desktop-renderer-test
+          /tmp/desktop-renderer-test /tmp/effect-resources
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader
@@ -46,4 +51,22 @@ jobs:
         with:
           name: DropRarityAura-${{ matrix.target }}
           path: DropRarityAura-${{ matrix.target }}.zip
+          if-no-files-found: error
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: DropRarityAura-*
+          path: platform-packages
+          merge-multiple: true
+      - name: Assemble all-platform package
+        run: python3 scripts/combine_packages.py platform-packages DropRarityAura-all-platforms.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DropRarityAura-all-platforms
+          path: DropRarityAura-all-platforms.zip
           if-no-files-found: error

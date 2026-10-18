@@ -4,7 +4,7 @@
   "author": "xin liu",
   "description": "KernelLoader 原生模组：按物品稀有度分级显示渐变光晕、地面光环、短光柱、星芒与上升粒子。",
   "version": "1.0.0",
-  "versionCode": 12,
+  "versionCode": 13,
   "dependence": [],
   "support": {
     "android": {
@@ -12,12 +12,12 @@
       "arm": false
     },
     "windows": {
-      "x64": false,
-      "x86": false
+      "x64": true,
+      "x86": true
     },
     "linux": {
-      "x64": false,
-      "x86": false
+      "x64": true,
+      "x86": true
     },
     "mac": {
       "x64": false,

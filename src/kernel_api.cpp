@@ -6,3 +6,6 @@
 #include "tefkernel/patchlib/method.h"
 
 #include "tefkernel/terraria/texture2d.h"
+#if !defined(__ANDROID__)
+#include "tefkernel/patchlib/struct/array.h"
+#endif
