@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <algorithm>
 
 namespace {
 struct Vec2 { float x, y; };
@@ -28,6 +29,28 @@ patch_handle_t read_object(patch_handle_t field, patch_handle_t instance = nullp
 Color tinted(RarityColor rgb, float opacity, float whiten = 0.0f) {
     auto channel = [=](uint8_t v) { return static_cast<uint8_t>((v + (255-v)*whiten) * opacity); };
     return {static_cast<uint8_t>(255*opacity), channel(rgb.b), channel(rgb.g), channel(rgb.r)};
+}
+void ellipse_ring(void* batch, void* texture, float cx, float cy,
+                  int rx, int ry, int stroke, Color color) {
+    const int x = static_cast<int>(std::lround(cx));
+    const int y = static_cast<int>(std::lround(cy));
+    for (int row = -ry; row <= ry; ++row) {
+        const float t = static_cast<float>(row) / ry;
+        const int outer = static_cast<int>(std::lround(rx * std::sqrt(std::max(0.0f, 1.0f-t*t))));
+        const int inner_ry = ry-stroke;
+        int inner = -1;
+        if (inner_ry > 0 && std::abs(row) < inner_ry) {
+            const float u = static_cast<float>(row) / inner_ry;
+            inner = static_cast<int>(std::lround((rx-stroke)*std::sqrt(std::max(0.0f,1.0f-u*u))));
+        }
+        if (inner < 0) {
+            g_draw(batch, texture, Rect{x-outer,y+row,outer*2+1,1}, color, g_draw_method);
+        } else {
+            const int width = std::max(1,outer-inner);
+            g_draw(batch, texture, Rect{x-outer,y+row,width,1}, color, g_draw_method);
+            g_draw(batch, texture, Rect{x+inner+1,y+row,width,1}, color, g_draw_method);
+        }
+    }
 }
 }
 
@@ -80,7 +103,7 @@ bool draw_rarity_beam(float world_x, float world_y, int rarity, RarityColor rgb,
     const float x = world_x - screen.x;
     const float base = world_y - screen.y;
     if (!std::isfinite(x) || !std::isfinite(base)) return false;
-    const int height = rarity == 0 ? 72 : 144;
+    const int height = rarity == 0 ? 36 : 72;
     const float pulse = 0.88f + 0.12f * std::sin(frame * 0.045f);
     // Current world SpriteBatch is already active in Main.DrawItem. Do not Begin/End it.
     // Stacked alpha strips create a continuous beam with a soft outer glow and bright core.
@@ -96,6 +119,15 @@ bool draw_rarity_beam(float world_x, float world_y, int rarity, RarityColor rgb,
         g_draw(batch, texture, body, tinted(rgb, 0.50f*fade), g_draw_method);
         g_draw(batch, texture, core, tinted(rgb, 0.90f*fade, 0.55f), g_draw_method);
     }
+    // A low base ring anchors the effect; a second ring rises over a four-second
+    // cycle at 60 FPS, fading in and out so the loop has no visible reset.
+    ellipse_ring(batch, texture, x, base+6.0f, 13, 4, 1, tinted(rgb,0.28f*pulse));
+    const float progress = static_cast<float>(frame % 240u) / 240.0f;
+    const float ring_y = base+6.0f-progress*height*0.75f;
+    const float opacity = std::sin(progress*3.14159265f);
+    const int radius = 12+static_cast<int>(progress*4.0f);
+    ellipse_ring(batch, texture, x, ring_y, radius+2, 5, 2, tinted(rgb,0.16f*opacity));
+    ellipse_ring(batch, texture, x, ring_y, radius, 4, 1, tinted(rgb,0.80f*opacity,0.20f));
     if (!g_first_draw_logged) {
         diagnostics_write("First native beam drawn: rarity=%d world=(%.1f,%.1f) screen=(%.1f,%.1f)", rarity,world_x,world_y,x,base);
         g_first_draw_logged = true;
