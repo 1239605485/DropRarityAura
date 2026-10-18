@@ -29,6 +29,7 @@ rm -rf "$STAGE"
 mkdir -p "$STAGE/Resources/lib"
 cp "$ROOT/Info.json" "$ROOT/Manifest.json" "$ROOT/mod.json" "$STAGE/"
 cp "$ROOT/$LIB" "$STAGE/Resources/lib/"
+python3 "$ROOT/scripts/generate_effects.py" "$STAGE/Resources/effects"
 python3 - "$ROOT" "$STAGE" "$(dirname "$CXX")/llvm-readelf" <<'PY'
 from pathlib import Path
 import sys, zipfile, json, struct, subprocess, tempfile, shutil
@@ -45,6 +46,9 @@ with tempfile.TemporaryDirectory() as tmp:
     shutil.copytree(stage / "Resources", private)
     config = json.loads((stage / "mod.json").read_text())
     binary = private / "lib" / f"lib{config['lib_name']}.android.arm64.so"
+    for name in ("bloom", "ring", "star", "spark", "beam", "tail"):
+        expected = (96 if name in ("beam", "tail") else 192) * 192 * 4
+        assert (private / "effects" / (name + ".rgba")).stat().st_size == expected
     data = binary.read_bytes()
     assert data[:4] == b"\x7fELF" and data[4] == 2
     assert struct.unpack_from("<H", data, 18)[0] == 183, "Not AArch64"

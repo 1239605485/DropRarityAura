@@ -7,5 +7,5 @@ struct RarityColor {
     uint8_t b;
 };
 
-// Vanilla Terraria Item.rare 1..13. Common rarity 0 has no aura.
+// Vanilla Terraria Item.rare 0..13; negative special rarities are omitted.
 bool rarity_color(int rarity, RarityColor& out);

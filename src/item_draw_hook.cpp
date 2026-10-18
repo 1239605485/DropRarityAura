@@ -15,6 +15,10 @@ GetActive g_active = nullptr;
 patch_hook_id_t g_hook = PATCH_HOOK_INVALID_ID;
 unsigned g_frames[1024]{};
 bool g_first_callback = false;
+struct Rect{int x,y,w,h;};
+using Basics=void(*)(void*,void*,int,void**,Rect*,Rect*,const void*);
+Basics basics{};patch_handle_t basicsMethod{};
+
 
 template<class T> bool read_field(patch_handle_t field, patch_handle_t object, T& out) {
     auto ptr = patchlib_field_get_pointer(field, object);
@@ -22,7 +26,7 @@ template<class T> bool read_field(patch_handle_t field, patch_handle_t object, T
     std::memcpy(&out, ptr, sizeof(T));
     return true;
 }
-void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_signature_t*) {
+void draw_item_layers(patch_handle_t instance, void** args, bool front) {
     if (!g_first_callback) { diagnostics_write("Main.DrawItem callback reached"); g_first_callback = true; }
     if (!args || !args[0] || !args[1]) return;
     const auto world_item = *static_cast<patch_handle_t*>(args[0]);
@@ -41,9 +45,16 @@ void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_si
         !read_field(g_width,world_item,width) || !read_field(g_height,world_item,height)) return;
     RarityColor color{};
     if (!rarity_color(rarity,color)) return;
-    draw_rarity_beam(position.x + width*0.5f, position.y + height*0.5f,
-                     rarity,color,++g_frames[slot]);
+    void* texture{};Rect frame{},glow{};
+    if(basics)basics(instance,item,slot,&texture,&frame,&glow,basicsMethod);
+    // World-item sprites are bottom-aligned; their visual centre differs from
+    // the physics hitbox centre for tall weapons. Query the actual frame.
+    const float ground=position.y+height;
+    const float visualY=ground-(frame.h>0?frame.h:height)*.5f+2.f;
+    draw_rarity_beam(position.x+width*.5f,visualY,rarity,color,++g_frames[slot],ground,front);
 }
+bool draw_item_prefix(patch_handle_t instance,void** args,const patch_method_signature_t*,void*){draw_item_layers(instance,args,false);return true;}
+void draw_item_postfix(patch_handle_t instance,void** args,void*,const patch_method_signature_t*){draw_item_layers(instance,args,true);}
 }
 bool install_item_draw_hook() {
     // APIs are populated by KernelLoader's plugin registration after loading this library.
@@ -66,12 +77,14 @@ bool install_item_draw_hook() {
     g_position = patchlib_type_get_field(entity,"position");
     g_width = patchlib_type_get_field(entity,"width");
     g_height = patchlib_type_get_field(entity,"height");
+    basicsMethod=patchlib_type_get_method_by_param_count(main,"DrawItem_GetBasics",5);
+    basics=basicsMethod?reinterpret_cast<Basics>(patchlib_method_get_pointer(basicsMethod)):nullptr;
     const auto draw = patchlib_type_get_method_by_param_count(main,"DrawItem",2);
     if (!g_inner || !g_rare || !g_stack || !g_type || !g_active || !g_position || !g_width || !g_height || !draw) {
         diagnostics_write("Item field or DrawItem lookup failed"); return false;
     }
     if (!initialize_beam_renderer()) return false;
-    g_hook = patchlib_install_prepost_hook(draw,nullptr,draw_item_postfix);
+    g_hook = patchlib_install_prepost_hook(draw,draw_item_prefix,draw_item_postfix);
     if (g_hook == PATCH_HOOK_INVALID_ID) { diagnostics_write("DrawItem hook installation failed"); return false; }
     std::memset(g_frames,0,sizeof(g_frames));
     g_first_callback = false;

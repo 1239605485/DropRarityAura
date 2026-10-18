@@ -4,3 +4,5 @@
 #include "tefkernel/patchlib/type.h"
 #include "tefkernel/patchlib/field.h"
 #include "tefkernel/patchlib/method.h"
+
+#include "tefkernel/terraria/texture2d.h"

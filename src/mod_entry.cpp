@@ -2,12 +2,14 @@
 #include "mod_logger.h"
 #include "item_draw_hook.hpp"
 #include "diagnostics.hpp"
+#include "beam_renderer.hpp"
 
 namespace {
 void init_mod(kernel_mod_handle_t* handle) {
     diagnostics_open(handle ? handle->private_dir : nullptr);
+    configure_beam_resources(handle ? handle->private_dir : nullptr);
     if (mod_logger_write)
-        mod_logger_write(MOD_LOG_LEVEL_INFO, "DropRarityAura", "Initializing rarity light pillar mod v0.8.0");
+        mod_logger_write(MOD_LOG_LEVEL_INFO, "DropRarityAura", "Initializing rarity light pillar mod v0.9.0");
     if (!install_item_draw_hook() && mod_logger_write)
         mod_logger_write(MOD_LOG_LEVEL_ERROR, "DropRarityAura", "Initialization failed");
 }
@@ -18,7 +20,7 @@ void cleanup_mod(kernel_mod_handle_t*) {
 }
 
 kernel_mod_info_t* get_info() {
-    static kernel_mod_info_t info = {"xinliu.droprarityaura", 8, 1, "0.8.0"};
+    static kernel_mod_info_t info = {"xinliu.droprarityaura", 9, 1, "0.9.0"};
     return &info;
 }
 }
