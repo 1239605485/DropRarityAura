@@ -15,7 +15,6 @@ namespace {
 constexpr const char* kTag = "DropRarityAura";
 constexpr int kDustWhiteTorch = 63;
 constexpr uint32_t kSpawnInterval = 6;
-constexpr float kBeamHeight = 128.0f;
 constexpr size_t kTrackedSlots = 1024;
 constexpr int kBeamSegments = 13;
 
@@ -55,13 +54,15 @@ void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_si
     if (args[1]) slot = *static_cast<int*>(args[1]);
     if (slot < 0 || slot >= static_cast<int>(kTrackedSlots)) return;
     const uint32_t count = ++g_draw_counts[static_cast<size_t>(slot)];
-    if (count % kSpawnInterval != 0) return;
+    const bool common_item = rarity == 0;
+    const uint32_t spawn_interval = common_item ? 12u : kSpawnInterval;
+    if (count % spawn_interval != 0) return;
 
     if (!g_seen_rare_item[static_cast<size_t>(slot)]) {
         g_seen_rare_item[static_cast<size_t>(slot)] = true;
         if (mod_logger_write)
             mod_logger_write(MOD_LOG_LEVEL_INFO, kTag,
-                             "Rare world item reached draw hook: slot=%d rarity=%d", slot, rarity);
+                             "World item reached draw hook: slot=%d rarity=%d", slot, rarity);
     }
 
     Vector2Value position{};
@@ -80,13 +81,15 @@ void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_si
     int alpha = 0;
     ColorValue tint{255, rgb.b, rgb.g, rgb.r};
     float scale = 1.25f;
-    const uint32_t pulse = count / kSpawnInterval;
-    for (int i = 0; i < kBeamSegments; ++i) {
-        const float segment = static_cast<float>(i) / static_cast<float>(kBeamSegments - 1);
+    const uint32_t pulse = count / spawn_interval;
+    const int beam_segments = common_item ? 7 : kBeamSegments;
+    const float beam_height = common_item ? 56.0f : 128.0f;
+    for (int i = 0; i < beam_segments; ++i) {
+        const float segment = static_cast<float>(i) / static_cast<float>(beam_segments - 1);
         const float wobble = std::sin(static_cast<float>(pulse) * 0.2f + segment * 6.2831853f) * 2.5f;
         Vector2Value particle_position{
             center_x + wobble,
-            center_y + 12.0f - segment * kBeamHeight,
+            center_y + 12.0f - segment * beam_height,
         };
         void* call_args[] = {
             &particle_position, &width, &height, &dust_id,
