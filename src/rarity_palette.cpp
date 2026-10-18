@@ -2,7 +2,7 @@
 
 bool rarity_color(const int rarity, RarityColor& out) {
     static constexpr RarityColor colors[] = {
-        {0, 0, 0},
+        {235, 245, 255},
         {80, 160, 255},
         {80, 220, 120},
         {255, 170, 55},
@@ -17,7 +17,7 @@ bool rarity_color(const int rarity, RarityColor& out) {
         {255, 125, 35},
         {255, 215, 245},
     };
-    if (rarity < 1 || rarity >= static_cast<int>(sizeof(colors) / sizeof(colors[0])))
+    if (rarity < 0 || rarity >= static_cast<int>(sizeof(colors) / sizeof(colors[0])))
         return false;
     out = colors[rarity];
     return true;
