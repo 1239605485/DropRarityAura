@@ -1,0 +1,24 @@
+#include "loot_style.hpp"
+#include "rarity_profile.hpp"
+#include <cassert>
+#include <cmath>
+#include <cstdio>
+struct Check{bool front;int count=0,beams=0,sparks=0;};
+void emit(void* data,EffectTexture tex,float x,float y,float w,float h,RarityColor,float power,float angle){
+ auto& c=*static_cast<Check*>(data);assert(std::isfinite(x)&&std::isfinite(y)&&std::isfinite(angle));assert(w>0&&h>0&&power>0&&power<1);
+ ++c.count;c.beams+=tex==Beam;c.sparks+=tex==Spark;
+ if(c.front){assert(tex==Ring||tex==Spark);if(tex==Spark)assert(std::abs(x-100)>=18||std::abs(y-160)>=20);}
+}
+int main(){int ranks[]={0,1,3,6,9};int previous=0;
+ for(int rank:ranks){int total=0;
+  for(int frame=0;frame<960;++frame){Check back{false},front{true};float t=frame/24.f;
+   draw_loot_style(&back,emit,100,160,202,rank,{185,105,255},t,false);
+   draw_loot_style(&front,emit,100,160,202,rank,{185,105,255},t,true);
+   if(rank<3)assert(back.beams==0);else assert(back.beams>0);
+   total+=back.count+front.count;
+  }
+  assert(total>previous);previous=total;
+ }
+ assert(rarity_profile(0).particles==0&&rarity_profile(9).particles==24);
+ puts("PASS: five increasingly complex rarity tiers; low tiers have no beams; front particles keep item centre clear over 40 seconds");
+}

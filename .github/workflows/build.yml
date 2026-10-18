@@ -29,6 +29,12 @@ jobs:
       - name: Install Android NDK
         if: matrix.target == 'android-arm64'
         run: sdkmanager --install "ndk;27.2.12479018"
+      - name: Check original item rendering and rarity tiers
+        run: |
+          g++ -std=c++17 -D__ANDROID__ -D__aarch64__ -I.deps/KernelLoader/includes -I.deps/KernelLoader/mod-api tests/item_draw_hook_test.cpp src/kernel_api.cpp src/rarity_palette.cpp -o /tmp/item-hook-test
+          /tmp/item-hook-test
+          g++ -std=c++17 -Isrc tests/rarity_style_test.cpp src/loot_style.cpp src/rarity_profile.cpp -o /tmp/rarity-style-test
+          /tmp/rarity-style-test
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader

@@ -3,8 +3,8 @@
   "name": "掉落物稀有度光环",
   "author": "xin liu",
   "description": "KernelLoader 原生模组：为普通及不同稀有度的地面掉落物添加彩色竖直光柱。",
-  "version": "0.9.0",
-  "versionCode": 9,
+  "version": "0.10.0",
+  "versionCode": 10,
   "dependence": [],
   "support": {
     "android": {

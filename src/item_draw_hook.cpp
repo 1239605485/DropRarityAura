@@ -53,7 +53,7 @@ void draw_item_layers(patch_handle_t instance, void** args, bool front) {
     const float visualY=ground-(frame.h>0?frame.h:height)*.5f+2.f;
     draw_rarity_beam(position.x+width*.5f,visualY,rarity,color,++g_frames[slot],ground,front);
 }
-bool draw_item_prefix(patch_handle_t instance,void** args,const patch_method_signature_t*,void*){draw_item_layers(instance,args,false);return true;}
+bool draw_item_prefix(patch_handle_t instance,void** args,const patch_method_signature_t*,void*){draw_item_layers(instance,args,false);return false; /* PatchLib: false runs the original DrawItem. */}
 void draw_item_postfix(patch_handle_t instance,void** args,void*,const patch_method_signature_t*){draw_item_layers(instance,args,true);}
 }
 bool install_item_draw_hook() {

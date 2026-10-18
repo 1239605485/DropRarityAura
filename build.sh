@@ -10,7 +10,7 @@ if [[ -z "$KERNELLOADER_DIR" || ! -d "$KERNELLOADER_DIR/includes" ]]; then
 fi
 
 mkdir -p "$ROOT/lib" "$ROOT/dist"
-COMMON=("$ROOT/src/mod_entry.cpp" "$ROOT/src/item_draw_hook.cpp" "$ROOT/src/rarity_palette.cpp" "$ROOT/src/beam_renderer.cpp" "$ROOT/src/diagnostics.cpp" "$ROOT/src/kernel_api.cpp" "$ROOT/src/loot_style.cpp")
+COMMON=("$ROOT/src/mod_entry.cpp" "$ROOT/src/item_draw_hook.cpp" "$ROOT/src/rarity_palette.cpp" "$ROOT/src/beam_renderer.cpp" "$ROOT/src/diagnostics.cpp" "$ROOT/src/kernel_api.cpp" "$ROOT/src/loot_style.cpp" "$ROOT/src/rarity_profile.cpp")
 INCLUDES=(-I"$KERNELLOADER_DIR/includes" -I"$KERNELLOADER_DIR/mod-api" -I"$ROOT/src")
 case "$TARGET" in
   android-arm64)

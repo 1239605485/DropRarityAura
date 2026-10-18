@@ -83,7 +83,7 @@ bool draw_rarity_beam(float wx,float wy,int rarity,RarityColor rgb,unsigned fram
  if(!std::isfinite(x)||!std::isfinite(y)||x < -110||x > screenWidth(widthMethod)+110||y < -110||y > screenHeight(heightMethod)+150)return false;
  if(!upload())return false;
  static const auto epoch=std::chrono::steady_clock::now();float t=std::chrono::duration<float>(std::chrono::steady_clock::now()-epoch).count();
- Context c{batch};draw_loot_style(&c,emit,x,y,ground-s.y,rgb,t,front);
+ Context c{batch};draw_loot_style(&c,emit,x,y,ground-s.y,rarity,rgb,t,front);
  if(!logged){diagnostics_write("Layered renderer active: rarity=%d",rarity);logged=true;}(void)frame;return true;
 }
 void reset_beam_renderer(){
