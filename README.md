@@ -7,7 +7,9 @@
 - `src/mod_entry.cpp`：加载和清理。
 - `src/kernel_api.cpp`：定义供 KernelLoader 注入的 API 指针变量，禁止作为未解析符号链接。
 - `src/item_draw_hook.cpp`：挂接地面物品绘制并读取位置、稀有度。
-- `src/beam_renderer.cpp`：复用 MagicPixel 原版纹理，以 ARM64 原生签名绘制渐隐光柱；不使用 Dust 和结构体 FFI。
+- `src/beam_renderer.cpp`：复用 MagicPixel 原版纹理，以 ARM64 原生签名绘制并裁剪屏幕外效果。
+- `src/loot_style.cpp`：独立视觉层，柔光环、渐尖光束、扩散地环、横向星芒、上升星点，按稀有度分级；动画使用实际时间。
+- 拾取后检查有效状态、物品类型与数量，立即停止所有绘制，不保留场景粒子。
 - `src/rarity_palette.cpp`：稀有度颜色。
 - `src/diagnostics.cpp`：在 TEFManager 导出目录写入 droprarityaura_runtime.log。
 

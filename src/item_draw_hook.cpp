@@ -9,7 +9,9 @@
 
 namespace {
 struct Vec2 { float x, y; };
-patch_handle_t g_inner{}, g_rare{}, g_position{}, g_width{}, g_height{};
+patch_handle_t g_inner{}, g_rare{}, g_position{}, g_width{}, g_height{}, g_stack{}, g_type{}, g_active_method{};
+using GetActive = bool (*)(void*, const void*);
+GetActive g_active = nullptr;
 patch_hook_id_t g_hook = PATCH_HOOK_INVALID_ID;
 unsigned g_frames[1024]{};
 bool g_first_callback = false;
@@ -27,7 +29,12 @@ void draw_item_postfix(patch_handle_t, void** args, void*, const patch_method_si
     const int slot = *static_cast<int*>(args[1]);
     if (!world_item || slot < 0 || slot >= 1024) return;
     patch_handle_t item = nullptr;
-    if (!read_field(g_inner, world_item, item) || !item) return;
+    if (!g_active || !g_active(world_item,g_active_method) ||
+        !read_field(g_inner, world_item, item) || !item) { g_frames[slot]=0; return; }
+    int stack = 0, type = 0;
+    if (!read_field(g_stack,item,stack) || !read_field(g_type,item,type) || stack<=0 || type<=0) {
+        g_frames[slot]=0; return;
+    }
     int rarity = 0, width = 16, height = 16;
     Vec2 position{};
     if (!read_field(g_rare,item,rarity) || !read_field(g_position,world_item,position) ||
@@ -52,11 +59,15 @@ bool install_item_draw_hook() {
     if (!main || !world || !item || !entity) { diagnostics_write("Item type lookup failed"); return false; }
     g_inner = patchlib_type_get_field(world,"inner");
     g_rare = patchlib_type_get_field(item,"rare");
+    g_stack = patchlib_type_get_field(item,"stack");
+    g_type = patchlib_type_get_field(item,"type");
+    g_active_method = patchlib_type_get_method_by_param_count(world,"get_active",0);
+    g_active = g_active_method ? reinterpret_cast<GetActive>(patchlib_method_get_pointer(g_active_method)) : nullptr;
     g_position = patchlib_type_get_field(entity,"position");
     g_width = patchlib_type_get_field(entity,"width");
     g_height = patchlib_type_get_field(entity,"height");
     const auto draw = patchlib_type_get_method_by_param_count(main,"DrawItem",2);
-    if (!g_inner || !g_rare || !g_position || !g_width || !g_height || !draw) {
+    if (!g_inner || !g_rare || !g_stack || !g_type || !g_active || !g_position || !g_width || !g_height || !draw) {
         diagnostics_write("Item field or DrawItem lookup failed"); return false;
     }
     if (!initialize_beam_renderer()) return false;
