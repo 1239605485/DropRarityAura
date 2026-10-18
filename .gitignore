@@ -1,3 +1,7 @@
 *.tefpkg
 *.zip
 .DS_Store
+/lib/
+/dist/
+/.deps/
+__pycache__/

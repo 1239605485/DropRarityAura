@@ -4,8 +4,8 @@
 #include <cmath>
 #include <cstdio>
 struct Check{bool front;int count=0,beams=0,sparks=0;bool approvedGround=false,approvedRing=false,approvedBeam=false,approvedStar=false;};
-void emit(void* data,EffectTexture tex,float x,float y,float w,float h,RarityColor,float power,float angle){
- auto& c=*static_cast<Check*>(data);assert(std::isfinite(x)&&std::isfinite(y)&&std::isfinite(angle));assert(w>0&&h>0&&power>0&&power<1);
+void emit(void* data,EffectTexture tex,float x,float y,float w,float h,RarityColor,float power){
+ auto& c=*static_cast<Check*>(data);assert(std::isfinite(x)&&std::isfinite(y));assert(w>0&&h>0&&power>0&&power<1);
  if(!c.front){
   c.approvedGround|=tex==Bloom&&w==106&&h==22&&power>.49f;
   c.approvedRing|=tex==Ring&&w==93&&h==17&&power>.64f;

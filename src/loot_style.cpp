@@ -1,7 +1,29 @@
 #include "loot_style.hpp"
 #include "rarity_profile.hpp"
 #include <cmath>
-namespace {float fract(float x){return x-std::floor(x);} constexpr float pi=3.14159265f;}
+#include <array>
+namespace {
+float fract(float x){return x-std::floor(x);}
+constexpr float pi=3.14159265f;
+struct SparkSeed {float offset,speed,phase,amplitude,size;};
+const std::array<SparkSeed,28>& spark_seeds(){
+ // Five seed sine calculations per particle are invariant: compute once,
+ // retaining exactly the same float expressions and particle trajectories.
+ static const auto seeds=[] {
+  std::array<SparkSeed,28> values{};
+  for(int i=0;i<28;++i){
+   float seed=i*7.731f;
+   values[i]={fract(std::sin(seed+1)*43758.5453f),
+    .14f+.11f*fract(std::sin(seed+2)*23731.13f),
+    fract(std::sin(seed+3)*12345.67f)*2*pi,
+    8+17*fract(std::sin(seed+4)*5341.17f),
+    2.5f+4*fract(std::sin(seed+5)*7891.31f)};
+  }
+  return values;
+ }();
+ return seeds;
+}
+}
 void draw_loot_style(void* c,EffectDraw d,float x,float y,float ground,int rarity,RarityColor col,float t,bool front){
  const auto style=rarity_profile(rarity);
  // Preserve the approved prototype's shapes, dimensions, tint and energy.
@@ -9,7 +31,7 @@ void draw_loot_style(void* c,EffectDraw d,float x,float y,float ground,int rarit
  const float p=.93f+.07f*std::sin(t*2.2f);
  RarityColor pale{(uint8_t)(col.r*.33f+170),(uint8_t)(col.g*.33f+170),(uint8_t)(col.b*.33f+170)};
  auto add=[&](EffectTexture tex,float px,float py,float w,float h,RarityColor color,float power){
-  if(power>0&&w>0&&h>0)d(c,tex,px,py,w,h,color,power,0);
+  if(power>0&&w>0&&h>0)d(c,tex,px,py,w,h,color,power);
  };
  if(!front){
   // Original base passes: these values come directly from the approved demo.
@@ -39,12 +61,11 @@ void draw_loot_style(void* c,EffectDraw d,float x,float y,float ground,int rarit
   float q=fract(t/4.2f+i/(float)style.liftRings);
   add(Ring,x,ground-8-q*28,57+q*13,10,col,.26f*std::sin(q*pi));
  }
+ const auto* seeds=style.particles?spark_seeds().data():nullptr;
  for(int i=0;i<style.particles;++i){
-  float seed=i*7.731f,off=fract(std::sin(seed+1)*43758.5453f);
-  float speed=.14f+.11f*fract(std::sin(seed+2)*23731.13f);
-  float phase=fract(std::sin(seed+3)*12345.67f)*2*pi;
-  float amp=8+17*fract(std::sin(seed+4)*5341.17f),size=2.5f+4*fract(std::sin(seed+5)*7891.31f);
-  float q=fract(t*speed+off),px=x+std::sin(phase+q*5)*amp*(.45f+.55f*q),py=y+12-q*131;
+  const auto& seed=seeds[i];
+  const float size=seed.size;
+  float q=fract(t*seed.speed+seed.offset),px=x+std::sin(seed.phase+q*5)*seed.amplitude*(.45f+.55f*q),py=y+12-q*131;
   if(std::abs(px-x)<18&&std::abs(py-y)<20)px=x+(px<x?-1:1)*20;
   float alpha=std::pow(std::sin(q*pi),1.5f)*(.24f+.5f*size/6.5f);
   add(Spark,px,py,size,size,pale,alpha);

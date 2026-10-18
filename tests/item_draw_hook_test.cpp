@@ -3,8 +3,8 @@
 #include <cstdio>
 struct ItemData {int rare=4,stack=1,type=100;};
 struct WorldData {bool active=true;ItemData* inner;Vec2 pos{30,40};int w=16,h=16;};
-int draws=0;unsigned lastframe=0;
-bool draw_rarity_beam(float,float,int,RarityColor,unsigned frame,float,bool){++draws;lastframe=frame;return true;}
+int draws=0;
+bool draw_rarity_beam(float,float,int,RarityColor,float,bool){++draws;return true;}
 bool initialize_beam_renderer(){return true;}void reset_beam_renderer(){}
 void diagnostics_write(const char*,...){}
 bool active(void* w,const void*){return static_cast<WorldData*>(w)->active;}
@@ -26,9 +26,9 @@ int main(){
  draw_item_postfix(nullptr,args,nullptr,nullptr);
  assert(originals==1&&draws==2);
  draws=1;
- w.active=false;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==1&&g_frames[slot]==0);
+ w.active=false;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==1);
  w.active=true;item.stack=0;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==1);
  item.stack=1;item.type=0;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==1);
- item.type=100;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==2&&lastframe==1);
- puts("PASS: pickup/inactive/zero-stack/empty-type stop drawing; slot reuse resets animation");
+ item.type=100;draw_item_postfix(nullptr,args,nullptr,nullptr);assert(draws==2);
+ puts("PASS: pickup/inactive/zero-stack/empty-type stop drawing; slot reuse resumes only for a valid live item");
 }

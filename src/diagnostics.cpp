@@ -1,4 +1,5 @@
 #include "diagnostics.hpp"
+#include "version.hpp"
 #include "mod_logger.h"
 #include <cstdio>
 #include <cstdarg>
@@ -15,7 +16,7 @@ void diagnostics_open(const char* private_dir) {
         std::snprintf(path, sizeof(path), "%s/droprarityaura_runtime.log", private_dir);
         g_log = std::fopen(path, "w");
     }
-    diagnostics_write("DropRarityAura 0.10.1 initialized; private_dir=%s", private_dir);
+    diagnostics_write("DropRarityAura %s initialized; private_dir=%s", kModVersion, private_dir);
 }
 void diagnostics_write(const char* format, ...) {
     char message[1024];

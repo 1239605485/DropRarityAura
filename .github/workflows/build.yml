@@ -35,6 +35,9 @@ jobs:
           /tmp/item-hook-test
           g++ -std=c++17 -Isrc tests/rarity_style_test.cpp src/loot_style.cpp src/rarity_profile.cpp -o /tmp/rarity-style-test
           /tmp/rarity-style-test
+          python3 scripts/generate_effects.py /tmp/effect-resources/effects
+          g++ -std=c++17 -D__ANDROID__ -D__aarch64__ -I.deps/KernelLoader/includes -I.deps/KernelLoader/mod-api tests/texture_lifetime_test.cpp src/kernel_api.cpp src/loot_style.cpp src/rarity_profile.cpp -o /tmp/texture-lifetime-test
+          /tmp/texture-lifetime-test /tmp/effect-resources
       - name: Build mod
         env:
           KERNELLOADER_DIR: ${{ github.workspace }}/.deps/KernelLoader

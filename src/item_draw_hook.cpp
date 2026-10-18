@@ -13,7 +13,6 @@ patch_handle_t g_inner{}, g_rare{}, g_position{}, g_width{}, g_height{}, g_stack
 using GetActive = bool (*)(void*, const void*);
 GetActive g_active = nullptr;
 patch_hook_id_t g_hook = PATCH_HOOK_INVALID_ID;
-unsigned g_frames[1024]{};
 bool g_first_callback = false;
 struct Rect{int x,y,w,h;};
 using Basics=void(*)(void*,void*,int,void**,Rect*,Rect*,const void*);
@@ -34,10 +33,10 @@ void draw_item_layers(patch_handle_t instance, void** args, bool front) {
     if (!world_item || slot < 0 || slot >= 1024) return;
     patch_handle_t item = nullptr;
     if (!g_active || !g_active(world_item,g_active_method) ||
-        !read_field(g_inner, world_item, item) || !item) { g_frames[slot]=0; return; }
+        !read_field(g_inner, world_item, item) || !item) { return; }
     int stack = 0, type = 0;
     if (!read_field(g_stack,item,stack) || !read_field(g_type,item,type) || stack<=0 || type<=0) {
-        g_frames[slot]=0; return;
+        return;
     }
     int rarity = 0, width = 16, height = 16;
     Vec2 position{};
@@ -51,7 +50,7 @@ void draw_item_layers(patch_handle_t instance, void** args, bool front) {
     // the physics hitbox centre for tall weapons. Query the actual frame.
     const float ground=position.y+height;
     const float visualY=ground-(frame.h>0?frame.h:height)*.5f+2.f;
-    draw_rarity_beam(position.x+width*.5f,visualY,rarity,color,++g_frames[slot],ground,front);
+    draw_rarity_beam(position.x+width*.5f,visualY,rarity,color,ground,front);
 }
 bool draw_item_prefix(patch_handle_t instance,void** args,const patch_method_signature_t*,void*){draw_item_layers(instance,args,false);return false; /* PatchLib: false runs the original DrawItem. */}
 void draw_item_postfix(patch_handle_t instance,void** args,void*,const patch_method_signature_t*){draw_item_layers(instance,args,true);}
@@ -86,7 +85,6 @@ bool install_item_draw_hook() {
     if (!initialize_beam_renderer()) return false;
     g_hook = patchlib_install_prepost_hook(draw,draw_item_prefix,draw_item_postfix);
     if (g_hook == PATCH_HOOK_INVALID_ID) { diagnostics_write("DrawItem hook installation failed"); return false; }
-    std::memset(g_frames,0,sizeof(g_frames));
     g_first_callback = false;
     diagnostics_write("DrawItem hook installed; direct ARM64 SpriteBatch renderer enabled");
     return true;

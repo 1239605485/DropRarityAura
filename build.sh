@@ -32,8 +32,15 @@ cp "$ROOT/$LIB" "$STAGE/Resources/lib/"
 python3 "$ROOT/scripts/generate_effects.py" "$STAGE/Resources/effects"
 python3 - "$ROOT" "$STAGE" "$(dirname "$CXX")/llvm-readelf" <<'PY'
 from pathlib import Path
-import sys, zipfile, json, struct, subprocess, tempfile, shutil
+import sys, zipfile, json, struct, subprocess, tempfile, shutil, re
 root, stage = Path(sys.argv[1]), Path(sys.argv[2])
+info = json.loads((stage / "Info.json").read_text())
+version_header = (root / "src/version.hpp").read_text()
+assert re.search(r'kModVersion = "' + re.escape(info['version']) + r'"', version_header)
+assert re.search(r'kModVersionCode = ' + str(info['versionCode']) + r';', version_header)
+expected_files = {"Info.json", "Manifest.json", "mod.json", "Resources/lib/libdrop_rarity_aura.android.arm64.so"}
+expected_files |= {"Resources/effects/" + n + ".rgba" for n in ("bloom", "ring", "star", "spark", "beam", "tail")}
+assert {p.relative_to(stage).as_posix() for p in stage.rglob("*") if p.is_file()} == expected_files, "Unexpected or obsolete package files"
 out = root / f"DropRarityAura-{stage.name}.zip"
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(stage.rglob("*")):
