@@ -1,27 +1,22 @@
-# 掉落物稀有度光环
+# 掉落物稀有度光柱
 
-KernelLoader 原生 C++ 模组。稀有掉落物周围会出现与稀有度对应颜色的光点，普通品质不显示。
+适用于 Terraria Android ARM64 1.4.5.8 和 KernelLoader 的原生 C++ 模组。普通地面物品显示白色光柱，高稀有度物品显示相应颜色的更高光柱。
 
 ## 代码分层
 
-- `src/mod_entry.cpp`：KernelLoader 模组入口和生命周期
-- `src/item_draw_hook.cpp`：挂接 `Main.DrawItem`，读取掉落物稀有度并节流生成原版尘埃
-- `src/rarity_palette.cpp`：独立稀有度 RGB 映射
-- `build.sh`：按目标平台编译并生成可导入 ZIP
+- `src/mod_entry.cpp`：加载和清理。
+- `src/kernel_api.cpp`：定义供 KernelLoader 注入的 API 指针变量，禁止作为未解析符号链接。
+- `src/item_draw_hook.cpp`：挂接地面物品绘制并读取位置、稀有度。
+- `src/beam_renderer.cpp`：复用 MagicPixel 原版纹理，以 ARM64 原生签名绘制渐隐光柱；不使用 Dust 和结构体 FFI。
+- `src/rarity_palette.cpp`：稀有度颜色。
+- `src/diagnostics.cpp`：在 TEFManager 导出目录写入 droprarityaura_runtime.log。
 
-## 运行方式
-
-模组清单声明 `parentLoader: eternal.future.kernelloader`，二进制放在 `lib/libdrop_rarity_aura.<platform>.<arch>.so`。
-
-依赖 KernelLoader 头文件与目标平台工具链：
+## 编译和安装
 
 ```sh
-KERNELLOADER_DIR=/path/to/TEFKernel-KernelLoader ./build.sh linux-x64
-KERNELLOADER_DIR=/path/to/TEFKernel-KernelLoader ANDROID_NDK_HOME=/path/to/ndk ./build.sh android-arm64
+KERNELLOADER_DIR=/path/to/KernelLoader ANDROID_NDK_HOME=/path/to/ndk bash build.sh android-arm64
 ```
 
-产物位于 `dist/`。压缩包内包含 `Info.json`、`Manifest.json`、`mod.json` 和平台动态库，按 KernelLoader 的 Mod 目录结构导入。
+ZIP 根目录包含 Info.json、Manifest.json、mod.json，原生库必须位于 `Resources/lib/libdrop_rarity_aura.android.arm64.so`。安装器把 Resources 的内容复制到私有目录，加载器再从私有目录的 lib/ 读取库。
 
-## 当前验证范围
-
-Linux x64 动态库已在本地编译。Android arm64 需 Android NDK。代码依据提供的 Terraria 1.4.5.8 反编译源码和 KernelLoader 1.2 API 编写；`Main.DrawItem` 反射查找、游戏内尘埃颜色和 Android IL2CPP hook 行为仍需进游戏实测。
+构建使用严格链接检查，不允许未定义的 PatchLib 指针变量；Android C++ 运行库静态链接。进游戏后的可视效果仍需设备验证，编译成功不代表已经验证游戏绘制。
